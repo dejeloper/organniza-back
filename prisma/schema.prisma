@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  icon      String
+  color     String
+  enabled   Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  Product   Product[]
+
+  @@index([name])
+}
+
+model ChecklistDetail {
+  id                                             Int             @id @default(autoincrement())
+  checklistHeaderId                              Int
+  productId                                      Int
+  pantryAmountProduct                            Int
+  pantryUnitProduct                              Int
+  requiredAmountProduct                          Int
+  requiredUnitProduct                            Int
+  enabled                                        Boolean         @default(true)
+  createdAt                                      DateTime        @default(now())
+  updatedAt                                      DateTime
+  ChecklistHeader                                ChecklistHeader @relation(fields: [checklistHeaderId], references: [id], onDelete: Cascade)
+  Unit_ChecklistDetail_pantryUnitProductToUnit   Unit            @relation("ChecklistDetail_pantryUnitProductToUnit", fields: [pantryUnitProduct], references: [id], onDelete: Cascade)
+  Product                                        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  Unit_ChecklistDetail_requiredUnitProductToUnit Unit            @relation("ChecklistDetail_requiredUnitProductToUnit", fields: [requiredUnitProduct], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
+
+model ChecklistHeader {
+  id              Int               @id @default(autoincrement())
+  year            Int
+  month           Int
+  enabled         Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  ChecklistDetail ChecklistDetail[]
+
+  @@index([createdAt])
+  @@index([month])
+  @@index([year])
+}
+
+model Place {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  shortName String
+  color     String
+  enabled   Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  Product   Product[]
+
+  @@index([name])
+}
+
+model Product {
+  id                     Int                      @id @default(autoincrement())
+  name                   String
+  description            String
+  unitId                 Int
+  price                  Float
+  categoryId             Int
+  placeId                Int
+  statusId               Int
+  observation            String?
+  image                  String?
+  enabled                Boolean                  @default(true)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime
+  ChecklistDetail        ChecklistDetail[]
+  Category               Category                 @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  Place                  Place                    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  ProductStatus          ProductStatus            @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  Unit                   Unit                     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  PurchasesHistoryDetail PurchasesHistoryDetail[]
+
+  @@index([createdAt])
+  @@index([enabled])
+  @@index([name])
+}
+
+model ProductStatus {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  enabled   Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  Product   Product[]
+
+  @@index([name])
+}
+
+model PurchasesHistoryDetail {
+  id                       Int                    @id @default(autoincrement())
+  purchasesHistoryHeaderId Int
+  productId                Int
+  amountProduct            Int                    @default(1)
+  unitProduct              Int
+  subTotalProduct          Float
+  enabled                  Boolean                @default(true)
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime
+  Product                  Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  PurchasesHistoryHeader   PurchasesHistoryHeader @relation(fields: [purchasesHistoryHeaderId], references: [id], onDelete: Cascade)
+  Unit                     Unit                   @relation(fields: [unitProduct], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([subTotalProduct])
+}
+
+model PurchasesHistoryHeader {
+  id                     Int                      @id @default(autoincrement())
+  year                   Int
+  month                  Int
+  amountPurchase         Int
+  totalPurchase          Float
+  enabled                Boolean                  @default(true)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime
+  PurchasesHistoryDetail PurchasesHistoryDetail[]
+
+  @@index([createdAt])
+  @@index([month])
+  @@index([totalPurchase])
+  @@index([year])
+}
+
+model Unit {
+  id                                                        Int                      @id @default(autoincrement())
+  name                                                      String                   @unique
+  nemonico                                                  String
+  enabled                                                   Boolean                  @default(true)
+  createdAt                                                 DateTime                 @default(now())
+  updatedAt                                                 DateTime
+  ChecklistDetail_ChecklistDetail_pantryUnitProductToUnit   ChecklistDetail[]        @relation("ChecklistDetail_pantryUnitProductToUnit")
+  ChecklistDetail_ChecklistDetail_requiredUnitProductToUnit ChecklistDetail[]        @relation("ChecklistDetail_requiredUnitProductToUnit")
+  Product                                                   Product[]
+  PurchasesHistoryDetail                                    PurchasesHistoryDetail[]
+
+  @@index([name])
+}
